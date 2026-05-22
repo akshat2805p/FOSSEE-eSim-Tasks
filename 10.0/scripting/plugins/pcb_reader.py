@@ -1,39 +1,56 @@
 import pcbnew
 import wx
 
-class PCBReader(pcbnew.ActionPlugin):
+class PCBStatisticsPlugin(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "Day 2 - PCB Reader"
-        self.category = "Learning Plugins"
-        self.description = "Reads PCB information and shows a pop-up"
+        self.name = "PCB Statistics Plugin"
+        self.category = "PCB Tools"
+        self.description = "Displays PCB statistics"
 
     def Run(self):
-        # 1. Get the current board
-        board = pcbnew.GetBoard()
-        
-        # 2. Extract all the required data
-        footprints = len(list(board.GetFootprints()))
-        tracks = len(list(board.GetTracks()))
-        vias = sum(1 for track in board.GetTracks() if track.GetClass() == "VIA")
-        nets = board.GetNetCount()
-        layers = board.GetCopperLayerCount()
-        file_name = board.GetFileName()
-        
-        # Convert thickness from internal units to millimeters
-        thickness = board.GetDesignSettings().GetBoardThickness() / 1000000.0
-        
-        # 3. Create a formatted display string
-        msg = f"Board File: {file_name}\n"
-        msg += f"Board Thickness: {thickness} mm\n"
-        msg += f"Total Footprints: {footprints}\n"
-        msg += f"Total Tracks: {tracks}\n"
-        msg += f"Total Vias: {vias}\n"
-        msg += f"Total Nets: {nets}\n"
-        msg += f"Copper Layers: {layers}"
-        
-        # 4. Show a pop-up alert box
-        wx.MessageBox(msg, "FOSSEE Day 2 - PCB Reader", wx.OK | wx.ICON_INFORMATION)
 
-# 5. Register the plugin so KiCad can see it
-PCBReader().register()
+        board = pcbnew.GetBoard()
+
+        # Count tracks
+        track_count = 0
+
+        # Count vias
+        via_count = 0
+
+        tracks = board.GetTracks()
+
+        for item in tracks:
+            if isinstance(item, pcbnew.TRACK):
+                track_count += 1
+
+            if isinstance(item, pcbnew.VIA):
+                via_count += 1
+
+        # Count footprints/components
+        footprint_count = len(board.GetFootprints())
+
+        # Get board dimensions
+        bbox = board.GetBoardEdgesBoundingBox()
+
+        width = pcbnew.ToMM(bbox.GetWidth())
+        height = pcbnew.ToMM(bbox.GetHeight())
+
+        # Create statistics text
+        stats = f"""
+PCB Statistics
+
+Tracks: {track_count}
+Vias: {via_count}
+Footprints: {footprint_count}
+
+Board Width: {width:.2f} mm
+Board Height: {height:.2f} mm
+"""
+
+        # Show popup message
+        wx.MessageBox(stats, "PCB Statistics Plugin")
+
+
+# Register plugin
+PCBStatisticsPlugin().register()
