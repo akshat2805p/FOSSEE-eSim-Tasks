@@ -1,56 +1,48 @@
 import pcbnew
 import wx
+import csv
+import os
 
 class PCBStatisticsPlugin(pcbnew.ActionPlugin):
 
     def defaults(self):
-        self.name = "PCB Statistics Plugin"
+        self.name = "PCB Statistics Exporter"
         self.category = "PCB Tools"
-        self.description = "Displays PCB statistics"
+        self.description = "Shows PCB statistics and exports them to CSV"
 
     def Run(self):
-
         board = pcbnew.GetBoard()
 
-        # Count tracks
-        track_count = 0
-
-        # Count vias
-        via_count = 0
-
-        tracks = board.GetTracks()
-
-        for item in tracks:
-            if isinstance(item, pcbnew.TRACK):
-                track_count += 1
-
-            if isinstance(item, pcbnew.VIA):
-                via_count += 1
-
-        # Count footprints/components
+        track_count = len(board.GetTracks())
         footprint_count = len(board.GetFootprints())
+        drawing_count = len(board.GetDrawings())
 
-        # Get board dimensions
-        bbox = board.GetBoardEdgesBoundingBox()
+        stats = [
+            ["Item", "Count"],
+            ["Tracks", track_count],
+            ["Footprints", footprint_count],
+            ["Drawings", drawing_count]
+        ]
 
-        width = pcbnew.ToMM(bbox.GetWidth())
-        height = pcbnew.ToMM(bbox.GetHeight())
+        # Message display
+        message = (
+            f"Tracks: {track_count}\n"
+            f"Footprints: {footprint_count}\n"
+            f"Drawings: {drawing_count}"
+        )
 
-        # Create statistics text
-        stats = f"""
-PCB Statistics
+        wx.MessageBox(message, "PCB Statistics")
 
-Tracks: {track_count}
-Vias: {via_count}
-Footprints: {footprint_count}
+        # Export CSV
+        output_file = os.path.join(os.path.expanduser("~"), "pcb_stats.csv")
 
-Board Width: {width:.2f} mm
-Board Height: {height:.2f} mm
-"""
+        with open(output_file, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerows(stats)
 
-        # Show popup message
-        wx.MessageBox(stats, "PCB Statistics Plugin")
+        wx.MessageBox(
+            f"CSV Exported Successfully!\nSaved at:\n{output_file}",
+            "Export Complete"
+        )
 
-
-# Register plugin
 PCBStatisticsPlugin().register()
