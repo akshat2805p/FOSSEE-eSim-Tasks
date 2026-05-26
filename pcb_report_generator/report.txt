@@ -1,0 +1,17 @@
+PCB DESIGN REPORT
+==============================
+
+Total Components: 8
+
+Resistors: 3
+Capacitors: 3
+ICs: 2
+
+Duplicate Components:
+- R1
+
+Missing Values:
+- C3
+
+STATUS:
+Design needs review.

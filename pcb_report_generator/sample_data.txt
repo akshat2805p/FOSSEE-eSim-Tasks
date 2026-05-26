@@ -1,0 +1,8 @@
+R1,Resistor,10k
+R2,Resistor,1k
+R1,Resistor,10k
+C1,Capacitor,100nF
+C2,Capacitor,10uF
+C3,Capacitor,
+U1,IC,ATmega328
+U2,IC,NE555
