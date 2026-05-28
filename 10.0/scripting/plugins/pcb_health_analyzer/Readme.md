@@ -25,3 +25,11 @@ A KiCad Action Plugin developed for eSim/FOSSEE workflows to analyze PCB design 
 - DRC enhancement
 - GUI dashboard
 - AI-assisted PCB suggestions
+
+## New Features Added
+
+- Layer-wise PCB statistics
+- Via and drill analysis
+- Automatic PCB health report generation
+- Improved formatted console output
+- KiCad Action Plugin integration
