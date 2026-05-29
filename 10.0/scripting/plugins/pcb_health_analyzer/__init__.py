@@ -1,1 +1,1 @@
-from .health_analyzer import PCBHealthAnalyzer
+from .drc_summary import DRCSummary

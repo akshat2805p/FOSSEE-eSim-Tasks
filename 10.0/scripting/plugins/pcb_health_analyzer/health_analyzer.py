@@ -15,8 +15,12 @@ class OPCBHealthAnalyzer(pcbnew.ActionPlugin):
         vias = 0
         top_tracks = 0
         bottom_tracks = 0
+        unconnected_pads = 0
+        overlaps = 0
 
-        for item in board.GetTracks():
+        all_tracks = list(board.GetTracks())
+
+        for item in all_tracks:
 
             if isinstance(item, pcbnew.PCB_TRACK):
                 tracks += 1
@@ -32,9 +36,26 @@ class OPCBHealthAnalyzer(pcbnew.ActionPlugin):
             if isinstance(item, pcbnew.PCB_VIA):
                 vias += 1
 
+        for footprint in board.GetFootprints():
+            for pad in footprint.Pads():
+
+                if pad.GetNetCode() == 0:
+                    unconnected_pads += 1
+
+        for i in range(len(all_tracks)):
+            for j in range(i + 1, len(all_tracks)):
+
+                if all_tracks[i].GetStart() == all_tracks[j].GetStart():
+                    overlaps += 1
+
         footprints = len(board.GetFootprints())
 
         copper_layers = board.GetCopperLayerCount()
+
+        board_status = "GOOD"
+
+        if unconnected_pads > 0 or overlaps > 0:
+            board_status = "WARNING"
 
         report = f"""
 ================================
@@ -59,6 +80,14 @@ LAYER STATISTICS
 
 Top Layer Tracks   : {top_tracks}
 Bottom Layer Tracks: {bottom_tracks}
+
+-------------------------------
+DRC SUMMARY
+-------------------------------
+
+Unconnected Pads   : {unconnected_pads}
+Possible Overlaps  : {overlaps}
+Board Status       : {board_status}
 
 ================================
 Analysis Complete
