@@ -9,6 +9,21 @@ class OPCBHealthAnalyzer(pcbnew.ActionPlugin):
         self.category = "PCB Analysis"
         self.description = "Analyzes PCB statistics and generates health report"
 
+    def calculate_health_score(self, tracks, vias, unconnected_pads, overlaps):
+
+        score = 100
+
+        if tracks < 20:
+            score -= 20
+
+        if vias > 50:
+            score -= 10
+
+        score -= unconnected_pads * 5
+        score -= overlaps * 5
+
+        return max(score, 0)
+
     def analyze_board(self, board):
 
         tracks = 0
@@ -52,10 +67,21 @@ class OPCBHealthAnalyzer(pcbnew.ActionPlugin):
 
         copper_layers = board.GetCopperLayerCount()
 
-        board_status = "GOOD"
+        health_score = self.calculate_health_score(
+            tracks,
+            vias,
+            unconnected_pads,
+            overlaps
+        )
 
-        if unconnected_pads > 0 or overlaps > 0:
-            board_status = "WARNING"
+        if health_score >= 90:
+            board_status = "EXCELLENT"
+        elif health_score >= 70:
+            board_status = "GOOD"
+        elif health_score >= 50:
+            board_status = "NEEDS REVIEW"
+        else:
+            board_status = "CRITICAL"
 
         report = f"""
 ================================
@@ -87,6 +113,12 @@ DRC SUMMARY
 
 Unconnected Pads   : {unconnected_pads}
 Possible Overlaps  : {overlaps}
+
+-------------------------------
+HEALTH ANALYSIS
+-------------------------------
+
+Health Score       : {health_score}/100
 Board Status       : {board_status}
 
 ================================
@@ -105,7 +137,10 @@ Analysis Complete
             f.write(report)
 
         pcbnew.wxMessageBox(
-            f"PCB Health Report Generated Successfully!\n\nSaved at:\n{report_path}",
+            f"PCB Health Report Generated Successfully!\n\n"
+            f"Health Score: {health_score}/100\n"
+            f"Status: {board_status}\n\n"
+            f"Saved at:\n{report_path}",
             "OPCB Health Analyzer"
         )
 
